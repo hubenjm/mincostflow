@@ -148,10 +148,6 @@ int main( int argc, char *argv[] ) {
   }
   inputdata.close();
 
-// for(i=1; i<=A; i++){
-//     cout<<startnode[i]<<"   "<<endnode[i]<<"   "<<d[i]<<"   "<<c[i]<<endl;
-//   }
-
   //Compute the maximum degree of any given node
   maxdeg=0;
   for(j=1; j<=N; j++){ 
@@ -185,11 +181,7 @@ int main( int argc, char *argv[] ) {
     numarcout[startnode[i]] = j+1;
     arcout[startnode[i]][numarcout[startnode[i]]] = i;
   }
-  //
-  for(i=1; i<=N; i++){
-    cout<<numarcin[i]<<"  "<<numarcout[i]<<endl;
-  }
-  //
+
 
   //compute the maximum of |d_{j}|
   maxd = fabs(double(d[1]));
@@ -286,8 +278,6 @@ int main( int argc, char *argv[] ) {
       }
     }
 
-    cout<<"reached this point"<<endl;
-
     while( nodeq.empty() == false){
   
       ibar = nodeq.back();
@@ -333,9 +323,6 @@ int main( int argc, char *argv[] ) {
         }
       }
 
-      cout<<"reached this point 2"<<endl;
-      cout<<numarcin[1]<<endl;
-
       if(proceed == false ){
         k = arc;
         beta = min( c[k] - x[k], s[ibar]);
@@ -350,7 +337,6 @@ int main( int argc, char *argv[] ) {
       }
     }
 
-    cout<<numarcin[1]<<endl;
     //Increase potential u[ibar] if all arcs are red
 
     if( proceed==true ){  
@@ -398,7 +384,6 @@ int main( int argc, char *argv[] ) {
         temp.clear();
       }
 
-    cout<<numarcin[1]<<endl;
       //update u
       u[ibar] = u[ibar] + alpha;
 
@@ -411,32 +396,21 @@ int main( int argc, char *argv[] ) {
         k = arcin[ibar][j];
         r[k] = r[k] - alpha;
       }
-      cout<<numarcin[1]<<endl;
-      cout<<"stuff"<<endl;
     }     
       }
     }
 
-    cout<<"iteration complete"<<endl;
-    for(i=1; i<=N; i++){
-    cout<<numarcin[i]<<"  "<<numarcout[i]<<endl;
-    }
     //scale epsilon down by 1/2
     e = e/2;
   }
-
-  cout<<"A = "<<A<<endl;
-  for(i=1; i<=N; i++){
-    cout<<numarcin[i]<<"  "<<numarcout[i]<<endl;
-  }
-
+  
   cout.setf(ios::floatfield);
   cout.precision(20); //sets number of digits to print out
   
   time(&t_f); //records end time of program
   dif = difftime(t_f, t_i);
   cout<<"Run time: "<<dif<<" seconds"<<endl;
-
+  
   //return cost associated with obtained flow x
   if( checkfeas(x,c,s,A,N) ){ 
     cout<<"Current flow is feasible"<<endl;
