@@ -1,5 +1,4 @@
-*.md~
-*.cc~
+*~
 
 # Compiled Object files
 *.slo
