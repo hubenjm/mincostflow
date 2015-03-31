@@ -3,7 +3,7 @@
 ## Synopsis
 
 mincost.cc is a C++ program which solves the minimum-cost flow problem on a discrete directed network given integer arc capacities, unit costs, 
-and divergence values using the epsilon relaxation algorithm with epsilon scaling. Please see [wikipedia][http://en.wikipedia.org/wiki/Minimum-cost_flow_problem] for details on the problem and background. In simple terms, it finds a flow vector x indexed by the arcs of the graph that yields the minimum cost and 
+and divergence values using the epsilon relaxation algorithm with epsilon scaling. Please see [wikipedia](http://en.wikipedia.org/wiki/Minimum-cost_flow_problem) for details on the problem and background. In simple terms, it finds a flow vector x indexed by the arcs of the graph that yields the minimum cost and 
 which has the specified divergence values at every node.
 
 ### Notation:
@@ -16,6 +16,19 @@ which has the specified divergence values at every node.
 6. `s` : surplus vector indexed by node. Indicates the surplus supply at each node. i.e. 
   ```s[i] = (net flow into node  i) - b[i].``` 
 7. `u` : node potential vector indexed by node.
+
+### Data Format
+
+1. Row 1 indicates |N| and |A|, where N is the node set and A is the arc set.
+2. Rows 2 to |A|+1 correspond to arcs, indicating the start node, end node, cost, and upper capacity of each arc (lower capacity is assumed to be zero). 
+3. The last |N| rows correspond to nodes, indicating the supply at each node.
+
+There are four data sets supplied with this repository, with the following properties:
+
+1. mcnf1.dat: |N|=4, |A|=5, optimal cost = 14
+2. mcnf2.dat: |N|=20, |A|=80, optimal cost = 30464
+3. mcnf3.dat: |N|=49, |A|=520, optimal cost = 1.73566449E+11 (corrected) (caution: this network has some parallel arcs)
+4. mcnf4.dat: |N|=10000, |A|=60000, optimal cost = 21514702 (maybe)
 
 ## Algorithm Description:
 
@@ -53,12 +66,21 @@ A given flow `x` and potential `u` satisfy epsilon-complementary slackness if fo
 
 ## Code Example
 
->> g++ mincost.cc -o mincost
->> ./mincost mcnf1.dat
+```terminal
+$ g++ mincost.cc -o mincost
+$ ./mincost mcnf1.dat
+Run time: 0.000361 seconds
+Current flow is feasible
+Minimum cost is: 14
+$ ./mincost mcnf4.dat
+Run time: 4.459991 seconds
+Current flow is feasible
+Minimum cost is: 21514702
+```
 
 ## Author
 
 Mark Hubenthal
 markhubenthal@gmail.com
-hubenjm.github.io
+[hubenjm.github.io](hubenjm.github.io)
 
