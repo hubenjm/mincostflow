@@ -13,7 +13,8 @@ which has the specified divergence values at every node.
 3. `c` : capacity vector indexed by arc. Each element of `c` gives the upper capacity of each arc. The lower capacities are all assumed to be 0.
 4. `b` : supply vector indexed by node. Each element of `b` gives the **desired supply** at each node of the graph.
 5. `r` : reduced cost vector indexed by arc. `r[j] = d[j] + u[i] - u[i']` where `j ~ (i, i')` is the arc from node `i` to node `i'`.
-6. `s` : surplus vector indexed by node. Indicates the surplus supply at each node. i.e. `s[i] = (net flow into node  i) - b[i]`. 
+6. `s` : surplus vector indexed by node. Indicates the surplus supply at each node. i.e. 
+  ```s[i] = (net flow into node  i) - b[i].``` 
 7. `u` : node potential vector indexed by node.
 
 ## Algorithm Description:
@@ -36,17 +37,17 @@ A given flow `x` and potential `u` satisfy epsilon-complementary slackness if fo
 ### Main algorithm:
 1. If `s[i] = 0` for all nodes `i`, then `x` is feasible, so stop. Else pick any node ibar with `s[ibar] > 0`. 
 2. While `s[ibar] != 0`:
-..1. Paint each arc `j ~ (i,i')`:
-...* white if `-epsilon <= r[j] <= -epsilon/2` and `x[j] < c[j]`
-...* black if `-epsilon/2 <= r[j] <= epsilon` and `x[j] > 0`
-...* red otherwise
-..2. If there is a black arc `jbar` out of `ibar`, then decrease `x[jbar]` by `min(x[jbar], s[ibar]`. Otherwise, if there is a white arc `jbar` into `ibar`, then increase `x[jbar]` by `min( c[jbar] - x[jbar], s[ibar])`.
-..3. If no criteria from previous step apply, then increase `u[ibar]` by as much as possible while maintaining `epsilon`-complementary slackness. In particular, set `u[ibar] = u[ibar] + alpha`, where
-```cplusplus
-alpha1 = min(-r[j] + epsilon) such that x[j] > 0 and j ~ (ibar, i')
-alpha2 = min(r[j] + epsilon) such that x[j] < c[j] and j \sim (i', ibar)
-alpha = min(alpha1, alpha2)
-```
+  1. Paint each arc `j ~ (i,i')`:
+    * white if `-epsilon <= r[j] <= -epsilon/2` and `x[j] < c[j]`
+    * black if `-epsilon/2 <= r[j] <= epsilon` and `x[j] > 0`
+    * red otherwise
+  2. If there is a black arc `jbar` out of `ibar`, then decrease `x[jbar]` by `min(x[jbar], s[ibar])`. Otherwise, if there is a white arc `jbar` into `ibar`, then increase `x[jbar]` by `min( c[jbar] - x[jbar], s[ibar])`.
+  3. If no criteria from previous step apply, then increase `u[ibar]` by as much as possible while maintaining `epsilon`-complementary slackness. In particular, set `u[ibar] = u[ibar] + alpha`, where
+  ```cplusplus
+  alpha1 = min(-r[j] + epsilon) such that x[j] > 0 and j ~ (ibar, i')
+  alpha2 = min(r[j] + epsilon) such that x[j] < c[j] and j ~ (i', ibar)
+  alpha = min(alpha1, alpha2)
+  ```
 3. `epsilon = epsilon/2`
 4. Repeat 1 until `epsilon < 1/N`.
 
