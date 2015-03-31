@@ -27,11 +27,11 @@ A given flow \\(x\\) and potential \\(u\\) satisfy epsilon-complementary slackne
 * \\(<= \epsilon\\) if \\(x[j] = c[j]\\)
 
 ### Initialization: 
-1. Set \\(u[i] = 0\\) for all nodes \\(i\\).
-2. For each arc \\(j \sim (i,i')\\), compute \\(r[j] = d[j] + u[i] - u[i']\\)
+1. Set u[i] = 0 for all nodes i.
+2. For each arc j~(i,i'), compute r[j] = d[j] + u[i] - u[i']
 3. Initialize flow x by calling initflow(x,r,c,A)
 4. Set epsilon = maximum degree of any node so that x and u satisfy epsilon-complementary slackness condition.
-5. Compute node surplus \\(s[i] = (\textrm{ net flow into node $i$}) - b[i]\\)
+5. Compute node surplus s[i] = (net flow into node i) - b[i]
 
 ### Main algorithm:
 1. If s[i] = 0 for all nodes i, then x is feasible, so stop. Else pick any node ibar with s[ibar] > 0. 
@@ -47,7 +47,6 @@ A given flow \\(x\\) and potential \\(u\\) satisfy epsilon-complementary slackne
 \end{equation}
 3. \\(\epsilon = \epsilon/2 \\)
 3. Repeat 1 until \\(\epsilon < 1/N\\).
-
 ## Code Example
 
 >> g++ mincost.cc -o mincost

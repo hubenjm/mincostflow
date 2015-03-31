@@ -27,18 +27,28 @@
 //mcnf4.dat: |N|=10000, |A|=60000, optimal cost = 21514702 (maybe)
 //
 //
-//Also note that in C++ arrays start at index 0 
-//(but the data format lists node labels starting from 1),
-//so adjustments had to be made accordingly as to how the data was processed
-//In particular, we will subtract 1 from each node label 
-//(i.e. node 1 is instead referred to as node 0).
+//Also note that in C++ arrays start at index 0, but the data format lists node labels starting from 1),
+//so adjustments had to be made accordingly as to how the data was processed.
+//In particular, we will subtract 1 from each node label (i.e. node 1 is instead referred to as node 0).
 //
 //--------------------------------------------------------//
+//
+//Notation:
+//
+//x : flow vector indexed by the arcs of the graph. Each element of x corresponds to the flow assigned to a given arc
+//d : cost vector indexed by the arcs of the graph. Each element of d gives the unit cost for a given arc.
+//c : capacity vector indexed by arc. Each element of c gives the upper capacity of each arc. The lower capacities are all assumed to be 0.
+//b : supply vector indexed by node. Each element of b gives the **desired supply** at each node of the graph.
+//r : reduced cost vector indexed by arc. r[j] = d[j] + u[i] - u[i'] where j ~ (i,i') is the arc from node i to node i'.
+//s : surplus vector indexed by node. Indicates the surplus supply at each node. i.e. s[i] = (net flow into node i) - b[i] 
+//u : node potential vector indexed by node.
+//
+//
 //Algorithm Description:
 //
-//Complimentary Epsilon Slackness Condition:
+//Complementary Epsilon Slackness Condition:
 //
-//A given flow x and potential u satisfy epsilon-complimentary slackness if
+//A given flow x and potential u satisfy epsilon-complementary slackness if
 //for all arcs j~(i,i'), d[j] + u[i] - u[i'] is
 //1. in the interval [-epsilon, epsilon] if 0 < x[j] < c[j]
 //2. >= -epsilon if 0 = x[j]
@@ -49,10 +59,10 @@
 //Initialization: 
 //1. Set u[i] = 0 for all nodes i.
 //2. For each arc j~(i,i'), compute r[j] = d[j] + u[i] - u[i']
-//3. Initialize flow x by calling initflow(x,r,A,c)
-//4. Set e = epsilon = maximum degree of any node so that x and u
-//   satisfy epsilon-complimentary slackness condition.
-//5. Compute node surplus s[i]= (net flow into node i) - b[i]
+//3. Initialize flow x by calling initflow(x,r,c,A)
+//4. Set epsilon = maximum degree of any node so that x and u
+//   satisfy epsilon-complementary slackness condition.
+//5. Compute node surplus s[i] = (net flow into node i) - b[i]
 //
 //Main algorithm:
 //1. If s[i] = 0 for all nodes i, then x is feasible, so stop.
@@ -60,21 +70,22 @@
 //   
 //   while( s[ibar] != 0 )
 //   1. paint each arc j~(i,i'):
-//      - white if r[j] \in [-e, -e/2] and x[j] < c[j]
-//      - black if r[j] \in [e/2, e] and x[j] > 0
+//      - white if r[j] \in [-epsilon, -epsilon/2] and x[j] < c[j]
+//      - black if r[j] \in [epsilon/2, epsilon] and x[j] > 0
 //      - red otherwise
 //   2. If there is a black arc jbar out of ibar, then decrease
 //        x[jbar] by min{x[jbar], s[ibar]}.
 //      else if there is a white arc jbar into ibar, then increase
 //        x[jbar] by min{c[jbar] - x[jbar], s[ibar]}.
 //   3. Else increase u[ibar] 
-//      by as much as possible while maintaining e-comlimentary slackness
+//      by as much as possible while maintaining e-complementary slackness
 //      In particular, set u[ibar] = u[ibar] + alpha where
-//      alpha = min{ (-r[j] + e such that j~(ibar, i') and x[j] > 0), 
-//                   ( r[j] + e such that j~(i',ibar) and x[j] < c[j]) }
-//   end if
+//      alpha = min{ (-r[j] + epsilon such that j~(ibar, i') and x[j] > 0), 
+//                   ( r[j] + epsilon such that j~(i',ibar) and x[j] < c[j]) }
 //   end while
-//   go to 1.
+//   end if
+//	 epsilon = epsilon/2
+//   go to 1. Repeat until epsilon < 1/N.
 //
 //------------------------------------------------------//
 
@@ -86,7 +97,7 @@
 #include <iomanip>
 #include <math.h>
 #include <deque>
-#include <time.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -122,7 +133,7 @@ double minpot2( vector<int> &v, vector<double> &r ){
 
 //initializes the flow x given a potential u. r is related to u
 //by the equation r_j = d_j + u_i - u_i' where j = (i, i') is an arc
-void initflow( vector<int> &x, vector<double> &r, int A, vector<int> &c){
+void initflow( vector<int> &x, vector<double> const &r, vector<int> const &c, int A){
   int i;
   for(i=0; i < A; i++){
     if( r[i] >= 0){
@@ -134,7 +145,7 @@ void initflow( vector<int> &x, vector<double> &r, int A, vector<int> &c){
 }
 
 //computes the cost of a given flow
-double cost( vector<int> &x, vector<int> &d, int A){
+double cost( vector<int> const &x, vector<int> const &d, int A){
   int i;
   double totalcost = 0;
   for(i = 0; i < A; i++){
@@ -145,7 +156,7 @@ double cost( vector<int> &x, vector<int> &d, int A){
 
 //checks whether a given flow x is feasible with respect to capacities
 //and whether s = 0 (s is a vector indexed by nodes giving the surplus of supply at each node)
-bool checkfeas( vector<int> &x, vector<int> &c, vector<int> &s, int A, int N){
+bool checkfeas( vector<int> const &x, vector<int> const &c, vector<int> const &s, int A, int N){
   int i;
   for(i=0; i < A; i++){
     if( (x[i] > c[i]) || (x[i]<0) ){ return false; }
@@ -163,6 +174,11 @@ void printflow( vector<int> &x, int A){
   }
 }
 
+double diff_sec(timeval t1, timeval t2)
+{
+    return (t2.tv_sec - t1.tv_sec +  (t2.tv_usec - t1.tv_usec)/1000000.0 );
+}
+
 
 void readdata(const char *filename, int &N, int &A, vector<int> &startnode, vector<int> &endnode, vector<int> &d, vector<int> &c, vector<int> &b, vector<int> &degree){
   ifstream inputdata;
@@ -170,6 +186,10 @@ void readdata(const char *filename, int &N, int &A, vector<int> &startnode, vect
   int i;
   //Reading in the number of nodes and arcs from the first line of file.dat
   inputdata.open(filename);
+  if(!inputdata){
+  	cerr << "Can't open input file " << filename << endl;
+  	exit(1);
+ 	}
   inputdata >> N;
   inputdata >> A;
   
@@ -210,11 +230,10 @@ int main( int argc, char *argv[] ) {
   int N; //number of nodes
   int A; //number of arcs
   const char *filename = argv[1];
-  time_t t_i; //start time of program
-  time_t t_f; //end time of program
-  double dif; //run time of program
-
-  time(&t_i); //records start time of program
+  timeval t1;
+  timeval t2;
+//  time_t t_i; //start time of program
+//  time_t t_f; //end time of program
 
   vector<int> startnode;
   vector<int> endnode;
@@ -225,6 +244,8 @@ int main( int argc, char *argv[] ) {
   vector<int> degree; //degree of each node, initially 0  
   int maxdeg;  //max degree of any given node in network
   int maxdegnode; //node index with maximal degree
+  
+	gettimeofday(&t1, NULL); //records start time of program
 
   //load data
   readdata(filename, N, A, startnode, endnode, d, c, b, degree);
@@ -292,7 +313,7 @@ int main( int argc, char *argv[] ) {
     //Change flow so that it satisfies epsilon complementary slackness 
     //with respect to new epsilon.
 
-    initflow(x,r,A,c);
+    initflow(x,r,c,A);
 
     //Compute s and put nodes with positive s in queue
     for(i=0; i < N; i++){
@@ -424,11 +445,10 @@ int main( int argc, char *argv[] ) {
 	}
 
   cout.setf(ios::floatfield);
-  cout.precision(20); //sets number of digits to print out
+  cout.precision(15); //sets number of digits to print out
   
-  time(&t_f); //records end time of program
-  dif = difftime(t_f, t_i);
-  cout<<"Run time: "<<dif<<" seconds"<<endl;
+  gettimeofday(&t2, NULL); //records end time of program
+  cout<<"Run time: "<<diff_sec(t1, t2)<<" seconds"<<endl;
   
   //return cost associated with obtained flow x
   if( checkfeas(x,c,s,A,N) ){ 
