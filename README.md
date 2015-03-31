@@ -80,7 +80,7 @@ Minimum cost is: 21514702
 
 ## Author
 
-Mark Hubenthal
-markhubenthal@gmail.com
-[hubenjm.github.io](hubenjm.github.io)
+- Mark Hubenthal
+- markhubenthal@gmail.com
+- [hubenjm.github.io](hubenjm.github.io)
 
