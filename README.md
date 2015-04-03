@@ -4,7 +4,7 @@
 
 mincost.cc is a C++ program which solves the minimum-cost flow problem on a discrete directed network given integer arc capacities, unit costs, 
 and divergence values using the epsilon relaxation algorithm with epsilon scaling. Please see [wikipedia](http://en.wikipedia.org/wiki/Minimum-cost_flow_problem) for details on the problem and background. In simple terms, it finds a flow vector x indexed by the arcs of the graph that yields the minimum cost and 
-which has the specified divergence values at every node.
+which has the specified divergence values at every node. Also see page 304 of the book **Dimitri Bertsekas - Network Optimization: Continuous and Discrete Models**, which can be downloaded for free from http://web.mit.edu/dimitrib/www/net.html for a well presented description of the algorithm as well as other similar algorithms to solve the problem (note: notation is slightly different from that used here).
 
 ### Notation:
 
