@@ -1,5 +1,4 @@
 //Author: Mark Hubenthal
-//Date: 12/08/2008
 //Program: mincost.cc
 //
 //Solves the min cost flow problem given integer arc capacities, unit costs, 
