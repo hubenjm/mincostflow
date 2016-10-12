@@ -214,127 +214,127 @@ void readdata(const char *filename, int &N, int &A, vector<int> &startnode, vect
 
 int main( int argc, char *argv[] ) {
 
-  int i; int j;
-  int m; int n;
-  int N; //number of nodes
-  int A; //number of arcs
-  const char *filename = argv[1];
-  timeval t1;
-  timeval t2;
-//  time_t t_i; //start time of program
-//  time_t t_f; //end time of program
-  double dif; //run time of program
+	int i; int j;
+	int m; int n;
+	int N; //number of nodes
+	int A; //number of arcs
+	const char *filename = argv[1];
+	timeval t1;
+	timeval t2;
+	//  time_t t_i; //start time of program
+	//  time_t t_f; //end time of program
+	double dif; //run time of program
 
-  vector<int> startnode;
-  vector<int> endnode;
-  vector<int> d; //unit cost on each arc
-  double d_max; //maximum of absolute values elements in d
-  vector<int> c; //upper capacity on each arc
-  vector<int> b; //supply at each node
-  vector<int> degree; //degree of each node, initially 0  
-  int maxdeg;  //max degree of any given node in network
-  int maxdegnode; //node index with maximal degree
-  
+	vector<int> startnode;
+	vector<int> endnode;
+	vector<int> d; //unit cost on each arc
+	double d_max; //maximum of absolute values elements in d
+	vector<int> c; //upper capacity on each arc
+	vector<int> b; //supply at each node
+	vector<int> degree; //degree of each node, initially 0  
+	int maxdeg;  //max degree of any given node in network
+	int maxdegnode; //node index with maximal degree
+
 	gettimeofday(&t1, NULL); //records start time of program
 
-  //load data
-  readdata(filename, N, A, startnode, endnode, d, c, b, degree);
-  
-  //Compute the maximum degree and argmax degree over all nodes
-  maxdeg=0;
-  for(j=0; j<N; j++){ 
-    if(maxdeg < degree[j]){ 
-      maxdegnode = j;
-      maxdeg = degree[j];
-    }
-  }
+	//load data
+	readdata(filename, N, A, startnode, endnode, d, c, b, degree);
 
-  vector< vector<int> > arcout(N, vector<int>(maxdeg));  //Records the indices from the array startnode[] corresponding to arcs out of each node
-  vector< vector<int> > arcin(N, vector<int>(maxdeg));  //Records the indices from the array endnode[] corresponding to arcs into each node
+	//Compute the maximum degree and argmax degree over all nodes
+	maxdeg=0;
+	for(j=0; j<N; j++){ 
+		if(maxdeg < degree[j]){ 
+			maxdegnode = j;
+			maxdeg = degree[j];
+		}
+	}
 
-  vector<int> numarcout(N,0);
-  vector<int> numarcin(N,0);  //initialize so that there are zero arcs coming in or out of each node
+	vector< vector<int> > arcout(N, vector<int>(maxdeg));  //Records the indices from the array startnode[] corresponding to arcs out of each node
+	vector< vector<int> > arcin(N, vector<int>(maxdeg));  //Records the indices from the array endnode[] corresponding to arcs into each node
+
+	vector<int> numarcout(N,0);
+	vector<int> numarcin(N,0);  //initialize so that there are zero arcs coming in or out of each node
 
   //build arcout and arcin
-  for(i=0; i < A; i++){
-    m = startnode[i];
-    n = endnode[i];
-    arcin[n][numarcin[n]] = i;
-    numarcin[n] += 1;
-    arcout[m][numarcout[m]] = i;
-    numarcout[m] += 1;
-  }
+	for(i=0; i < A; i++){
+		m = startnode[i];
+		n = endnode[i];
+		arcin[n][numarcin[n]] = i;
+		numarcin[n] += 1;
+		arcout[m][numarcout[m]] = i;
+		numarcout[m] += 1;
+	}
 
   //compute the maximum of |d_{j}|
-  d_max = fabs(double(d[0]));
-  for(i=0; i < A; i++){
-    if(fabs(double(d[i]))> d_max){ 
-      d_max = fabs(double(d[i])); 
-    }
-  }
+	d_max = fabs(double(d[0]));
+	for(i=0; i < A; i++){
+		if(fabs(double(d[i]))> d_max){ 
+			d_max = fabs(double(d[i])); 
+		}
+	}
 
-  double epsilon = d_max;  //initial choice of epsilon (large enough to zero node potential satisfies epsilon complimentary slackness
-  vector<double> u(N, 0); //node potential, initially zero
-  vector<int> x(A, 0); //current flow
-  vector<double> r(A); //reduced cost d_j + u_i - u_i' for each arc
-  vector<int> s(N); //excess supply at each node, s = Ex - b
-  deque<int> nodeq;
-  int ibar;
+	double epsilon = d_max;  //initial choice of epsilon (large enough to zero node potential satisfies epsilon complimentary slackness
+	vector<double> u(N, 0); //node potential, initially zero
+	vector<int> x(A, 0); //current flow
+	vector<double> r(A); //reduced cost d_j + u_i - u_i' for each arc
+	vector<int> s(N); //excess supply at each node, s = Ex - b
+	deque<int> nodeq;
+	int ibar;
 
-  //Initialize reduced cost r
-  for(i=0; i < A; i++){
-    r[i] = double(d[i]) + u[startnode[i]] - u[endnode[i]];
-  }
+	//Initialize reduced cost r
+	for(i=0; i < A; i++){
+		r[i] = double(d[i]) + u[startnode[i]] - u[endnode[i]];
+	}
 
   //---------------------------------------------------------------------//
   //Main part of algorithm
 
-  bool proceed;
-  int k; //k is always used as a temporary storage variable to simplify the code a bit
-  double alpha;
-  double alpha1;
-  double alpha2;
-  int beta;
-  vector<int> temp;
-  int arc; //temporary variable to store index of a given arc
+	bool proceed;
+	int k; //k is always used as a temporary storage variable to simplify the code a bit
+	double alpha;
+	double alpha1;
+	double alpha2;
+	int beta;
+	vector<int> temp;
+	int arc; //temporary variable to store index of a given arc
 
-  while(epsilon >= 1/( double(N) )){
-    
-    //Change flow so that it satisfies epsilon complementary slackness 
-    //with respect to new epsilon.
+	while(epsilon >= 1/( double(N) )){
 
-    initflow(x,r,c,A);
+		//Change flow so that it satisfies epsilon complementary slackness 
+		//with respect to new epsilon.
 
-    //Compute s and put nodes with positive s in queue
-    for(i=0; i < N; i++){
-      s[i] = -b[i];
-      for(j=0; j < numarcout[i]; j++){
-        k = arcout[i][j];
-        s[i] += x[k];
-      }
-      for(j=0; j < numarcin[i]; j++){
-        k = arcin[i][j];
-        s[i] -= x[k];
-      } 
-      if(s[i]>0){
-        nodeq.push_back(i);
-      }
-    }
+		initflow(x,r,c,A);
 
-    while(nodeq.empty() == false){
-      ibar = nodeq.back();
-      nodeq.pop_back();
-      while(s[ibar] > 0){
-      	proceed = true;
+		//Compute s and put nodes with positive s in queue
+		for(i=0; i < N; i++){
+			s[i] = -b[i];
+			for(j=0; j < numarcout[i]; j++){
+				k = arcout[i][j];
+				s[i] += x[k];
+			}
+			for(j=0; j < numarcin[i]; j++){
+				k = arcin[i][j];
+				s[i] -= x[k];
+			} 
+			if(s[i]>0){
+				nodeq.push_back(i);
+			}
+		}
+
+		while(nodeq.empty() == false){
+			ibar = nodeq.back();
+			nodeq.pop_back();
+			while(s[ibar] > 0){
+		  		proceed = true;
 				temp.clear();
 
 				for(j=0; j<numarcout[ibar] && proceed == true; j++){
 					k = arcout[ibar][j];
 					if( (r[k] <= epsilon) && (r[k] >= (epsilon/2)) && (x[k] > 0) ){ 
-		    		arc = k; 
-		    		proceed = false;
-      	  }
-        }
+						arc = k; 
+						proceed = false;
+					}
+		    	}
 
 				if(proceed == false ){
 					//if proceed == false, then there are black arcs out of ibar
@@ -358,7 +358,7 @@ int main( int argc, char *argv[] ) {
 							//Loop stops after first arc is found
 						}
 					}
-				
+			
 					if(proceed == false ){
 						k = arc;
 						beta = min( c[k] - x[k], s[ibar]);
@@ -408,46 +408,46 @@ int main( int argc, char *argv[] ) {
 						}
 					}else{
 						for(j=0; j < numarcin[ibar]; j++){
-						k = arcin[ibar][j];
-						if( x[k] < c[k] ){ temp.push_back(k); }
+							k = arcin[ibar][j];
+							if( x[k] < c[k] ){ temp.push_back(k); }
 						}
 						alpha = minpot2( temp, r) + epsilon;
 						temp.clear();
 					}
 
-				  //update u
-				  u[ibar] = u[ibar] + alpha;
+					//update u
+					u[ibar] = u[ibar] + alpha;
 
-				  //update r
-				  for(j=0; j < numarcout[ibar]; j++){
-				    k = arcout[ibar][j];
-				    r[k] += alpha;
-				  }
-				  for(j=0; j < numarcin[ibar]; j++){
-				    k = arcin[ibar][j];
-				    r[k] -= alpha;
-				  }
-    		}     
-  		}
+					//update r
+					for(j=0; j < numarcout[ibar]; j++){
+						k = arcout[ibar][j];
+						r[k] += alpha;
+					}
+					for(j=0; j < numarcin[ibar]; j++){
+						k = arcin[ibar][j];
+						r[k] -= alpha;
+					}
+				}     
+			}
 		}
 		//scale epsilon down by 1/2
 		epsilon = epsilon/2;
 	}
 
-  cout.setf(ios::floatfield);
-  cout.precision(15); //sets number of digits to print out
+//	cout.setf(ios::floatfield);
+//	cout.precision(15); //sets number of digits to print out
+
+	gettimeofday(&t2, NULL); //records end time of program
+	dif = diff_sec(t1, t2);
+	cout<<"Run time: "<<dif<<" seconds"<<endl;
   
-  gettimeofday(&t2, NULL); //records end time of program
-  dif = diff_sec(t1, t2);
-  cout<<"Run time: "<<dif<<" seconds"<<endl;
-  
-  //return cost associated with obtained flow x
-  if( checkfeas(x,c,s,A,N) ){ 
-    cout<<"Current flow is feasible"<<endl;
-    cout<<"Minimum cost is: "<<cost(x,d,A)<<endl;
-  }else{
-    cout<<"Current flow not feasible"<<endl;
-  }
+	//return cost associated with obtained flow x
+	if( checkfeas(x,c,s,A,N) ){ 
+		cout<<"Current flow is feasible"<<endl;
+		cout<<"Minimum cost is: "<<cost(x,d,A)<<endl;
+	}else{
+		cout<<"Current flow not feasible"<<endl;
+	}
 }
         
       
